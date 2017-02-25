@@ -27,7 +27,9 @@
         [:a.navbar-brand {:href "#/"} "toscoding"]
         [:ul.nav.navbar-nav
          [nav-link "#/" "Home" :home collapsed?]
-         [nav-link "#/about" "About" :about collapsed?]]]])))
+         [nav-link "#/about" "About" :about collapsed?]
+         [nav-link "#/coding" "Coding" :coding collapsed?]
+         ]]])))
 
 (defn about-page []
   [:div.container
@@ -42,9 +44,44 @@
       [:div {:dangerouslySetInnerHTML
              {:__html (md->html docs)}}]])])
 
+;; most of the stuff up there is just template-generated boilerplate that I can't bother to get rid of.
+
+;; data atoms. I'm going to send all data as simple strings, and then let them decode as json or whatever on either end, because this is FAST DEPLOY TIME.
+
+(def coding-datom (r/atom ""))
+(def tocode-datom (r/atom ""))
+(def response-datom (r/atom ""))
+
+(defn input-field [coding-datom]
+  [:input {:type "text"
+           :value @coding-datom
+           :on-change #(reset! coding-datom (-> % .-target .-value))}])
+
+(defn send-data! [coding-datom]
+  (POST "/file"
+        {:params @coding-datom
+         :handler #(reset! response-datom (str %))
+         :error-handler #(reset! response-datom (str "error: " %))}))
+
+(defn coding-page []
+  [:div.container
+   [:div.row
+    [:div.col-md-12
+     [:p
+      [input-field coding-datom] " "]
+     [:p
+      [:input.btn.btn-primary
+       {:type :submit
+        :on-click #(send-data! coding-datom)
+        :value "send data"}]]
+     [:p (str "response: " @response-datom)]
+     [:p (str "coding-datom is: " @coding-datom)]]]])
+
 (def pages
   {:home #'home-page
-   :about #'about-page})
+   :about #'about-page
+   :coding #'coding-page
+   })
 
 (defn page []
   [(pages (session/get :page))])
@@ -58,6 +95,9 @@
 
 (secretary/defroute "/about" []
   (session/put! :page :about))
+
+(secretary/defroute "/coding" []
+  (session/put! :page :coding))
 
 ;; -------------------------
 ;; History

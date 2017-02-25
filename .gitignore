@@ -1,3 +1,6 @@
+*.log
+*.swp
+test.txt
 /target
 /lib
 /classes
