@@ -57,25 +57,31 @@
            :value @coding-datom
            :on-change #(reset! coding-datom (-> % .-target .-value))}])
 
+(def test-site "http://www.google.com")
+
 (defn send-data! [coding-datom]
   (POST "/file"
         {:params @coding-datom
          :handler #(reset! response-datom (str %))
          :error-handler #(reset! response-datom (str "error: " %))}))
 
+(defn test-input-component []
+  [:div.col-md-12
+   [:p
+    [input-field coding-datom] " "]
+   [:p
+    [:input.btn.btn-primary
+     {:type :submit
+      :on-click #(send-data! coding-datom)
+      :value "send data"}]]
+   [:p (str "response: " @response-datom)]
+   [:p (str "coding-datom is: " @coding-datom)]])
+
 (defn coding-page []
   [:div.container
    [:div.row
-    [:div.col-md-12
-     [:p
-      [input-field coding-datom] " "]
-     [:p
-      [:input.btn.btn-primary
-       {:type :submit
-        :on-click #(send-data! coding-datom)
-        :value "send data"}]]
-     [:p (str "response: " @response-datom)]
-     [:p (str "coding-datom is: " @coding-datom)]]]])
+    [test-input-component]
+    ]])
 
 (def pages
   {:home #'home-page
