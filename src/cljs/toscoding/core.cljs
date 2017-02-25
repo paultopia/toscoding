@@ -48,16 +48,34 @@
 
 ;; data atoms. I'm going to send all data as simple strings, and then let them decode as json or whatever on either end, because this is FAST DEPLOY TIME.
 
-(def coding-datom (r/atom ""))
+(def test-coding-datom (r/atom ""))
+(def coding-datom (r/atom {}))
 (def tocode-datom (r/atom ""))
 (def response-datom (r/atom ""))
 
-(defn input-field [coding-datom]
-  [:input {:type "text"
-           :value @coding-datom
-           :on-change #(reset! coding-datom (-> % .-target .-value))}])
+(defn binary-choice [coding-datom field label opt1 opt2]
+  [:p (str label " ")
+   [:label
+    [:input {:type "radio"
+             :name (str field)
+             :value opt1
+             :on-change #(swap! coding-datom assoc field opt1)}]
+    (str " " opt1)] " | "
+   [:label
+    [:input {:type "radio"
+             :name (str field)
+             :value opt2
+             :on-change #(swap! coding-datom assoc field opt2)}]
+    (str " " opt2)]
+   ])
 
-(def test-site "http://www.google.com")
+(defn line-input-field [coding-datom field]
+  [:p
+   [:input {:type "text"
+            :on-change #(swap! coding-datom assoc field (-> % .-target .-value))}]
+   " "])
+
+(def test-site "http://www.modsy.com")
 
 (defn send-data! [coding-datom]
   (POST "/file"
@@ -66,22 +84,44 @@
          :error-handler #(reset! response-datom (str "error: " %))}))
 
 (defn test-input-component []
-  [:div.col-md-12
-   [:p
-    [input-field coding-datom] " "]
-   [:p
-    [:input.btn.btn-primary
-     {:type :submit
-      :on-click #(send-data! coding-datom)
-      :value "send data"}]]
-   [:p (str "response: " @response-datom)]
-   [:p (str "coding-datom is: " @coding-datom)]])
+  [:div.row
+   [:div.col-md-12
+     [line-input-field test-coding-datom]
+    [:p
+     [:input.btn.btn-primary
+      {:type :submit
+       :on-click #(send-data! test-coding-datom)
+       :value "send data"}]]
+    [:p (str "response: " @response-datom)]
+    [:p (str "coding-datom is: " @test-coding-datom)]]])
+
+
+
+(defn input-component []
+  [:div.row
+   [:div.col-md-12
+    [line-input-field coding-datom :test]
+    [binary-choice coding-datom :q1 "question one" "a1" "a2"]
+    [binary-choice coding-datom :q2 "question two" "b1" "b2"]
+    ]])
+
+(defn target-component [url]
+  [:div.row
+   [:div.col-md-12
+    [:h2 "Here's your site to code!"]
+    [:iframe
+     {:src url
+      :width "800"
+      :height "400"}]
+    [:p
+     [:a {:href url :target "_blank"} "site doesn't show up correctly above? open in a new tab."]]]])
 
 (defn coding-page []
   [:div.container
-   [:div.row
-    [test-input-component]
-    ]])
+   [target-component test-site]
+   [input-component]
+   [:div.row>div.col-sm-12
+    [:p (str (js->clj @coding-datom))]]])
 
 (def pages
   {:home #'home-page
