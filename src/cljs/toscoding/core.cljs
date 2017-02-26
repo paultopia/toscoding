@@ -9,12 +9,22 @@
             [ajax.core :refer [GET POST]])
   (:import goog.History))
 
+(def coding-datom (r/atom {}))
+(def response-datom (r/atom ""))
+(defonce current-site (r/atom ""))
+
 (defn nav-link [uri title page collapsed?]
   [:li.nav-item
    {:class (when (= page (session/get :page)) "active")}
    [:a.nav-link
     {:href uri
      :on-click #(reset! collapsed? true)} title]])
+
+(defn quit-link [current-site]
+  [:li.nav-item
+   [:a.nav-link
+    {:href "#/quit"
+     :on-click #(POST "/quit" {:params @current-site})} "QUIT"]])
 
 (defn navbar []
   (let [collapsed? (r/atom true)]
@@ -26,16 +36,17 @@
         (when-not @collapsed? {:class "in"})
         [:a.navbar-brand {:href "#/"} "toscoding"]
         [:ul.nav.navbar-nav
-         [nav-link "#/" "Home" :home collapsed?]
-         [nav-link "#/about" "About" :about collapsed?]
+         [nav-link "#/" "Instructions" :home collapsed?]
          [nav-link "#/coding" "Coding" :coding collapsed?]
-         ]]])))
+         [quit-link current-site]]]])))
 
-(defn about-page []
+(defn quit-page []
   [:div.container
    [:div.row
     [:div.col-md-12
-     [:img {:src (str js/context "/img/warning_clojure.png")}]]]])
+     [:p "Good job!  If you decide you want to start coding again, "
+      [:a {:href "/"} "go back home."]]
+     ]]])
 
 (defn home-page []
   [:div.container
@@ -44,14 +55,6 @@
       [:div {:dangerouslySetInnerHTML
              {:__html (md->html docs)}}]])])
 
-;; most of the stuff up there is just template-generated boilerplate that I can't bother to get rid of.
-
-;; data atoms. I'm going to send all data as simple strings, and then let them decode as json or whatever on either end, because this is FAST DEPLOY TIME.
-
-
-(def coding-datom (r/atom {}))
-(def response-datom (r/atom ""))
-(defonce current-site (r/atom ""))
 
 
 (defn binary-choice [coding-datom field label]
@@ -142,7 +145,7 @@
 
 (def pages
   {:home #'home-page
-   :about #'about-page
+   :quit #'quit-page
    :coding #'coding-page
    })
 
@@ -156,8 +159,8 @@
 (secretary/defroute "/" []
   (session/put! :page :home))
 
-(secretary/defroute "/about" []
-  (session/put! :page :about))
+(secretary/defroute "/quit" []
+  (session/put! :page :quit))
 
 (secretary/defroute "/coding" []
   (session/put! :page :coding))

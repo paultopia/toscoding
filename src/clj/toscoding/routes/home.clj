@@ -9,14 +9,11 @@
 (defn home-page []
   (layout/render "home.html"))
 
-
 (def targets (atom nil))
 (def in-process (atom []))
 
-(def stub-targets ["http://paul-gowder.com" "http://gowder.io", "http://paultopia.org", "http://standardize.io"])
-
 (defn fetch-saved-targets []
-  (parse-string (slurp (io/resource "ph_realurls.json")))) ;; stub to get targets from disk.
+  (parse-string (slurp (io/resource "ph_realurls.json"))))
 
 (defn fetch-target! [targets]
   (do
@@ -24,7 +21,7 @@
       (reset! targets (fetch-saved-targets)))
     (let [targs @targets
           item (last targs)
-          newtargs (butlast targs)] 
+          newtargs (vec (butlast targs))] 
       (reset! targets newtargs)
       (swap! in-process conj item)
       item)))
@@ -36,9 +33,14 @@
 (defn enter-data! [s]
   (do
     (db/add-to-db! s)
-    (spit "test.txt" (str s "\n\n"))
     (swap! in-process remove-from-vec (:url s))
     (fetch-target! targets)))
+
+(defn stop-coding [target]
+  (do
+    (swap! in-process remove-from-vec target)
+    (swap! targets conj target)
+    (str "removed: " target)))
 
 (defroutes home-routes
   (GET "/" []
@@ -49,6 +51,8 @@
   (GET "/docs" []
        (-> (response/ok (-> "docs/docs.md" io/resource slurp))
            (response/header "Content-Type" "text/plain; charset=utf-8")))
+  (POST "/quit" request
+        (stop-coding (:body-params request)))
   (GET "/dev-db" [] ; just dump db contents
        (db/dump-contracts))
   (GET "/dev-flush" [] ; get rid of db contents
