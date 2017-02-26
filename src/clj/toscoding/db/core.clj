@@ -12,14 +12,13 @@
 (defstate db
   :start (:db db*))
 
-(defn create-user [user]
-  (mc/insert db "users" user))
+(defn add-to-db! [contract]
+  (let [oid (:url contract)]
+    (mc/insert db "contracts" (merge {:_id oid} contract))))
 
-(defn update-user [id first-name last-name email]
-  (mc/update db "users" {:_id id}
-             {$set {:first_name first-name
-                    :last_name last-name
-                    :email email}}))
+(defn dump-contracts []
+  (mc/find-maps db "contracts"))
 
-(defn get-user [id]
-  (mc/find-one-as-map db "users" {:_id id}))
+;; just for dev to test on same sites over again.
+(defn clear!! [coll]
+  (mc/remove db coll))

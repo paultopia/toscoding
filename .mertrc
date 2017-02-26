@@ -1,0 +1,8 @@
+layout:
+  -
+    - mongod
+    - sleep 1 && lein run
+  -
+    - sleep 60 && lein figwheel
+  -
+    - sleep 60 && lein repl :connect 7000 
