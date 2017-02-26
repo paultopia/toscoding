@@ -32,6 +32,10 @@ body {
   }
 }
 
+li {
+   margin:0 0 10px 0;   
+}
+
 @-moz-keyframes three-quarters-loader {
     0% {
         -moz-transform: rotate(0deg);

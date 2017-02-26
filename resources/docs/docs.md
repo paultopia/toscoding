@@ -1,92 +1,31 @@
-<h2 class="alert alert-success">Congratulations, your <a class="alert-link" href="http://luminusweb.net">Luminus</a> site is ready!</h2>
+<h2 class="alert alert-success">Instructions for coding</h2>
 
-This page will help guide you through the first steps of building your site.
+Our project is to read a bunch of terms of service agreements on websites and collect data on some of their terms.
 
-#### Why are you seeing this page?
+This site should work with current versions of Chrome on desktop. I don't know about any other browser, and I don't know about mobile devices.
 
-The `home-routes` handler in the `toscoding.routes.home` namespace
-defines the route that invokes the `home-page` function whenever an HTTP
-request is made to the `/` URI using the `GET` method.
+#### Most important rules
 
-```
-(defroutes home-routes
-  (GET "/" []
-       (home-page))
-  (GET "/docs" []
-       (-> (response/ok (-> "docs/docs.md" io/resource slurp))
-           (response/header "Content-Type" "text/plain; charset=utf-8"))))
-```
+1.  When you're done entering data---even if you don't enter a single agreement, you **must** click "QUIT" in the menubar up at the top. Even if you just read these instructions, you need to click quit when you're done.  **Every time** you finish what you're doing on this site and stand up from your computer, you need to click "QUIT."  Otherwise, the data could get corrupted.  
 
-The `home-page` function will in turn call the `toscoding.layout/render` function
-to render the HTML content:
+2.  We're just coding general terms of service (also known as "terms of use" or just "terms")---not "privacy policies."
 
-```
-(defn home-page []
-  (layout/render "home.html"))
-```
+#### Workflow
 
-The page contains a link to the compiled ClojureScript found in the `target/cljsbuild/public` folder:
+1. Click "Coding" in the menubar.
 
-```
-{% script "/js/app.js" %}
-```
+2.  Wait a few seconds for things to load.  A website should appear in the box in the middle of the page.  If it doesn't (some sites block embedding) click the link below the box to open it up in a new tab.
 
-The rest of this page is rendered by ClojureScript found in the `src/cljs/toscoding/core.cljs` file.
+3.  Navigate to the terms of service for the embedded website.  If the website doesn't have one, then click "no" on the first question, scroll all the way to the bottom, hit "submit," and you're done with that one. But don't give up too quickly. Some sites put their terms on a page called "legal," others put them on the registration page for whatever their service is.
 
+4.  Read the terms of service and answer the questions on the coding page. Explanations of terms in the questions are below.
 
+5.  At the very bottom, there is a big box for text.  Copy the entire text of the terms of service from the site into that box.
 
-#### Organizing the routes
+6.  Hit submit.  A new site will appear in a few seconds, and you can enter data for the next one, or hit quit on top if you're done.
 
-The routes are aggregated and wrapped with middleware in the `toscoding.handler` namespace:
+7.  Reminder: when you're done entering data for the site, you **must** hit quit at the top.
 
-```
-(def app-routes
-  (routes
-    (-> #'home-routes
-        (wrap-routes middleware/wrap-csrf)
-        (wrap-routes middleware/wrap-formats))
-    (route/not-found
-      (:body
-        (error-page {:status 404
-                     :title "page not found"})))))
-```
+### Explanation of questions 
 
-The `app-routes` definition groups all the routes in the application into a single handler.
-A default route group is added to handle the `404` case.
-
-<a class="btn btn-primary" href="http://www.luminusweb.net/docs/routes.md">learn more about routing »</a>
-
-The `home-routes` are wrapped with two middleware functions. The first enables CSRF protection.
-The second takes care of serializing and deserializing various encoding formats, such as JSON.
-
-#### Managing your middleware
-
-Request middleware functions are located under the `toscoding.middleware` namespace.
-
-This namespace is reserved for any custom middleware for the application. Some default middleware is
-already defined here. The middleware is assembled in the `wrap-base` function.
-
-Middleware used for development is placed in the `toscoding.dev-middleware` namespace found in
-the `env/dev/clj/` source path.
-
-<a class="btn btn-primary" href="http://www.luminusweb.net/docs/middleware.md">learn more about middleware »</a>
-
-<div class="bs-callout bs-callout-danger">
-
-#### MongoDB configuration is required
-
-If you haven't already, then please follow the steps below to configure your MongoDB connection.
-
-* Ensure that MongoDB is up and running.
-* Set the connection parameters in the `profiles.clj` file.
-* Let `mount` know to start the database connection by `require`-ing `toscoding.core` in some other namespace.
-* Restart the application.
-
-</div>
-
-
-
-#### Need some help?
-
-Visit the [official documentation](http://www.luminusweb.net/docs) for examples
-on how to accomplish common tasks with Luminus. The `#luminus` channel on the [Clojurians Slack](http://clojurians.net/) and [Google Group](https://groups.google.com/forum/#!forum/luminusweb) are both great places to seek help and discuss projects with other users.
+(TODO)
