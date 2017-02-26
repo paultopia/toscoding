@@ -5,6 +5,7 @@
 
   :dependencies [[bouncer "1.0.0"]
                  [cljs-ajax "0.5.8"]
+                 [cheshire "5.7.0"]
                  [com.novemberain/monger "3.0.0-rc2"]
                  [compojure "1.5.2"]
                  [cprop "0.1.10"]
