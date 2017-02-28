@@ -55,27 +55,36 @@
       [:div {:dangerouslySetInnerHTML
              {:__html (md->html docs)}}]])])
 
-(defn binary-choice [coding-datom field label]
-  [:p (str label " ") [:br]
+(defn not-checker [coding-datom field]
+  (let [answer (get @coding-datom field "not-found")]
+    (cond
+      (= answer true) false
+      (= answer false) true
+      :else nil)))
+
+(defn binary-choice [coding-datom field lab]
+  [:p (str lab " ") [:br]
    [:label
     [:input {:type "radio"
              :name (str field)
+             :checked (get @coding-datom field nil)
              :value true
-             :on-change #(swap! coding-datom assoc field true)}]
+             :on-click #(swap! coding-datom assoc field true)}]
     " Yes. "] [:br]
    [:label
     [:input {:type "radio"
              :name (str field)
+             :checked (not-checker coding-datom field)
              :value false
-             :on-change #(swap! coding-datom assoc field false)}]
+             :on-click #(swap! coding-datom assoc field false)}]
     " No. "]])
 
 (defn bigtext [coding-datom field]
   [:p
    [:textarea {:rows "10"
                :cols "80"
-               :on-change #(swap! coding-datom assoc field (-> % .-target .-value))}
-    ""]])
+               :value (get @coding-datom field nil)
+               :on-change #(swap! coding-datom assoc field (-> % .-target .-value))}]])
 
 (defn line-input-field [coding-datom field]
   [:p
@@ -83,42 +92,51 @@
             :on-change #(swap! coding-datom assoc field (-> % .-target .-value))}]
    " "])
 
-
 (defn send-data! [coding-datom]
-  (POST "/file"
-        {:params @coding-datom
-         :handler #(reset! current-site %)
-         :error-handler #(.log js/console (str "error: " %))}))
+  (do (POST "/file"
+          {:params @coding-datom
+           :handler #(reset! current-site %)
+           :error-handler #(.log js/console (str "error: " %))})
+      false))
 
 (defn input-component [current-site]
   [:div.row
    [:div.col-md-12
-    [binary-choice coding-datom :found-k "Could you find a terms of service contract? "]
-    [:p "If not, just scroll to the bottom and hit submit. Otherwise, answer the questions below."]
-    [:h3 "Procedural provisions"]
-    [binary-choice coding-datom :arbitration "Is there a compelled arbitration clause? "]
-    [binary-choice coding-datom :choice-of-law "Is there a choice of law clause? "]
-    [binary-choice coding-datom :class-action-wavier "Do users waive class actions? "]
-    [:h3 "Substantive disadvantages"]
-    [binary-choice coding-datom :waive-warranties "Do users waive warranties? "]
-    [binary-choice coding-datom :assume-risk "Do users assume the risk of negligence? "]
-    [binary-choice coding-datom :indemnification "Do users indemnify site against claims? "]
-    [:h3 "Property-like rights"]
-    [binary-choice coding-datom :ip-in-personal-data "Do users grant IP rights in personal data other than for providing site services? "]
-    [binary-choice coding-datom :license-not-sale "Does transaction claim to be a \"license\" rather than a \"sale\"? "]
-    [:h3 "User options"]
-    [binary-choice coding-datom :snail-mail "Must user use physical mail to exercise some right? "]
-    [binary-choice coding-datom :opt-out "Does contract provide a way to opt-out of some term? "]
-    [:h3 "Copy and paste the contract below"]
-    [bigtext coding-datom :contract]
-    [:p
-     [:input.btn.btn-primary
-      {:type :submit
-       :on-click #(do
-                    (swap! coding-datom assoc :url @current-site)
-                    (send-data! coding-datom))
-       :value "submit"}]]
-    ]])
+    [:form {:id "coding-form"}
+     [binary-choice coding-datom :found-k "Could you find a terms of service contract? "]
+     [:p "If not, just scroll to the bottom and hit submit. Otherwise, answer the questions below."]
+     [:h3 "Procedural provisions"]
+     [binary-choice coding-datom :arbitration "Is there a compelled arbitration clause? "]
+     [binary-choice coding-datom :choice-of-law "Is there a choice of law clause? "]
+     [binary-choice coding-datom :class-action-wavier "Do users waive class actions? "]
+     [:h3 "Substantive disadvantages"]
+     [binary-choice coding-datom :waive-warranties "Do users waive warranties? "]
+     [binary-choice coding-datom :assume-risk "Do users assume the risk of negligence? "]
+     [binary-choice coding-datom :indemnification "Do users indemnify site against claims? "]
+     [:h3 "Property-like rights"]
+     [binary-choice coding-datom :ip-in-personal-data "Do users grant IP rights in personal data other than for providing site services? "]
+     [binary-choice coding-datom :license-not-sale "Does transaction claim to be a \"license\" rather than a \"sale\"? "]
+     [:h3 "User options"]
+     [binary-choice coding-datom :snail-mail "Must user use physical mail to exercise some right? "]
+     [binary-choice coding-datom :opt-out "Does contract provide a way to opt-out of some term? "]
+     [:h3 "Copy and paste the contract below"]
+     [bigtext coding-datom :contract]
+     [:p
+      [:input.btn.btn-primary
+       {:type :submit
+        :on-click #(do
+                     (swap! coding-datom assoc :url @current-site)
+                     (send-data! coding-datom)
+                     (reset! coding-datom {})
+                     (.preventDefault %))
+        :value "submit"}]]
+    ]]])
+
+(defn debug-component []
+  [:div.row>div.col-sm-12
+   [:p (str @coding-datom)]
+   [:p (str @response-datom)]
+   [:p (str @current-site)]])
 
 (defn target-component [current-site]
   [:div.row
@@ -134,7 +152,9 @@
 (defn coding-page []
   [:div.container
    [target-component current-site]
-   [input-component current-site]])
+   [input-component current-site]
+   ;[debug-component]
+   ])
 
 (def pages
   {:home #'home-page
