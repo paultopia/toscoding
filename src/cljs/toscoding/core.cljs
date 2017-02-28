@@ -55,8 +55,6 @@
       [:div {:dangerouslySetInnerHTML
              {:__html (md->html docs)}}]])])
 
-
-
 (defn binary-choice [coding-datom field label]
   [:p (str label " ") [:br]
    [:label
@@ -70,8 +68,7 @@
              :name (str field)
              :value false
              :on-change #(swap! coding-datom assoc field false)}]
-    " No. "]
-   ])
+    " No. "]])
 
 (defn bigtext [coding-datom field]
   [:p
@@ -91,8 +88,7 @@
   (POST "/file"
         {:params @coding-datom
          :handler #(reset! current-site %)
-         :error-handler #(reset! response-datom (str "error: " %))}))
-
+         :error-handler #(.log js/console (str "error: " %))}))
 
 (defn input-component [current-site]
   [:div.row
@@ -138,16 +134,12 @@
 (defn coding-page []
   [:div.container
    [target-component current-site]
-   [input-component current-site]
-   [:div.row>div.col-sm-12
-    [:p (str "response: " @response-datom)]
-    [:p (str (js->clj @coding-datom))]]])
+   [input-component current-site]])
 
 (def pages
   {:home #'home-page
    :quit #'quit-page
-   :coding #'coding-page
-   })
+   :coding #'coding-page})
 
 (defn page []
   [(pages (session/get :page))])
