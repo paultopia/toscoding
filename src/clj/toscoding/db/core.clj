@@ -16,7 +16,7 @@
   (let [oid (:url contract)]
     (mc/insert db "contracts" (merge {:_id oid} contract))))
 
-(defn dump-contracts []
+(defn see-all-contracts []
   (mc/find-maps db "contracts"))
 
 ;; just for dev to test on same sites over again.

@@ -36,6 +36,12 @@
     (swap! in-process remove-from-vec (:url s))
     (fetch-target! targets)))
 
+(defn flush-pending [] ; untested
+  (let [pending @in-process]
+    (reset! in-process [])
+    (swap! targets (comp vec concat) pending)
+    (str "Pending sites now flushed.")))
+
 (defn stop-coding [target]
   (do
     (swap! in-process remove-from-vec target)
@@ -53,10 +59,14 @@
            (response/header "Content-Type" "text/plain; charset=utf-8")))
   (POST "/quit" request
         (stop-coding (:body-params request)))
-  (GET "/dev-db" [] ; just dump db contents
-       (db/dump-contracts))
-  (GET "/dev-flush" [] ; get rid of db contents
+  (GET "/dev-db" [] ; see db contents
+       (db/see-all-contracts))
+  (GET "/dev-clear-db" [] ; get rid of db contents. REMOVE BEFORE PROD TOO DANGEROUS.
        (db/clear!! "contracts"))
-  (GET "/dev-in-process" [] ; dump in-process list
-       (str @in-process)))
+  (GET "/dev-pending" [] ; see in-process list
+       (str @in-process))
+  (GET "/dev-clear-pending" [] ; get rid of in-process atom
+       (flush-pending))
+  (GET "/dev-see-targets" [] ; list of targets
+       (str @targets)))
 
